@@ -18,26 +18,31 @@ public class ContactService {
         agenda.add(new Contact(name, email, phoneNumber));
     }
 
-    public void loadContacts(Path file) {
-        List<String> line = new ArrayList<>();
+    public boolean loadContactsCSV(Path file) {
 
         try {
-            while ((line = Files.readAllLines(file)) != null) {
-
-                for (String x : line) {
-                    String vect[] = x.split(",\\s*");
-                    String name = vect[0];
-                    String email = vect[1];
-                    String phoneNumber = vect[2];
-                    addContact(name, email, phoneNumber);
-                }
+            List<String >line = Files.readAllLines(file);
+            if(!line.isEmpty()){
+                line.remove(0); //Remove cabeçalho
             }
+            for (String x : line) {
+                String vect[] = x.split(",");
+                if(vect.length == 3){
+                    String name = vect[0].trim();
+                    String email = vect[1].trim();
+                    String phoneNumber = vect[2].trim();
+                    addContact(name, email, phoneNumber);
+                }else{
+                    System.out.println("Linha invalida: "+x);
+                }
+            } return true;
+
         } catch (IOException e) {
-            e.printStackTrace();
+            return false;
         }
     }
 
-    public boolean saveContacts() {
+    public boolean saveContactsCSV() {
         Path file = Paths.get(System.getProperty("user.home"), "AgendaContatos", "agenda.csv");
 
         try {
