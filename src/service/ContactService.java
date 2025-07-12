@@ -2,15 +2,17 @@ package service;
 
 import model.entities.Contact;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ContactService {
     List<Contact> agenda = new ArrayList<>();
+
 
     public void addContact(String name, String email, String phoneNumber) {
         agenda.add(new Contact(name, email, phoneNumber));
@@ -35,42 +37,54 @@ public class ContactService {
         }
     }
 
-    public void saveContacts(Path file) {
+    public boolean saveContacts() {
+        Path file = Paths.get(System.getProperty("user.home"), "AgendaContatos", "agenda.csv");
+
         try {
-            for (Contact x : agenda) {
-                Files.writeString(file, x.getName() + ", " + x.getEmail() + ", " + x.getPhoneNumber(), StandardOpenOption.APPEND);
+            Files.createDirectories(file.getParent());  //Cria diretorio inexistente(é necessario tratar)
+            //trata e fecha BufferedWriter com finally
+            try (BufferedWriter bw = Files.newBufferedWriter(file)) {
+                //insere dados do Contato ao arquivo agenda.csv
+                bw.write("NOME,E-MAIL,NUMERO TELEFONE");
+                for (Contact x : agenda) {
+                    bw.newLine();
+                    String line = x.getName() + "," + x.getEmail() + "," + x.getPhoneNumber();
+                    bw.write(line);
+                }
+                return true;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            return false;
         }
     }
 
-    public void listContacts(){
-        for(Contact x : agenda){
-            System.out.println("Name: "+x.getName()
-                    +" Email: "+x.getEmail()
-                    +" Phone Number: "+x.getPhoneNumber());
+    public void listContacts() {
+        for (Contact x : agenda) {
+            System.out.println(x);
         }
     }
 
-    public void searchContact(String name){
-        for(Contact x : agenda){
-            if(x.getName().equalsIgnoreCase(name)){
+    public void searchContact(String name) {
+        boolean found = false;
+        for (Contact x : agenda) {
+            if (x.getName().equalsIgnoreCase(name)) {
+                System.out.print("📞Contato encontrado: ");
                 System.out.println(x);
+                found = true;
             }
+        }
+        //Se found=true; o if não executa, pois a condicao inverte para false.
+        if (!found) {
+            System.out.println("Contato não encontrado!");
         }
     }
 
-    public void removeContact(String name){
-        for(Contact x : agenda){
-            if(x.getName().equalsIgnoreCase(name)){
-                agenda.remove(x);
-            }
-        }
+    public boolean removeContact(String name) {
+        return agenda.removeIf(x -> x.getName().equalsIgnoreCase(name));
     }
 
     //Pendente!
-    public void updateContact(){
+    public void updateContact() {
 
     }
 }
